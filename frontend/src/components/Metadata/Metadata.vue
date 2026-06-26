@@ -1,0 +1,3 @@
+<template>
+  <link rel="icon" type="image/x-icon" href="@/public/favicon">
+</template>

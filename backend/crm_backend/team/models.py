@@ -1,0 +1,26 @@
+from django.db import models
+from django.contrib.auth.models import User
+
+
+class Plan(models.Model):
+    name = models.CharField(max_length=255)
+    max_leads = models.IntegerField(default=5)
+    max_clients = models.IntegerField(default=5)
+    price = models.DecimalField(max_digits=6, decimal_places=4)
+
+    def __str__(self):
+        return self.name
+
+
+
+class Team(models.Model):
+    name = models.CharField(max_length=255)
+    #One team can have many users - one user can have many teams
+    members = models.ManyToManyField(User,related_name='teams')
+    # FK - Who created the team
+    created_by = models.ForeignKey(User,related_name='created_teams',on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    plan = models.ForeignKey(Plan, related_name='teams', on_delete=models.SET_NULL, null=True , blank=True)
+    invite_code = models.CharField(null=True,blank=True,max_length=20)
+
+

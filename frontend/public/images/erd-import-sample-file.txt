@@ -1,0 +1,52 @@
+This file will describe the information needed to import data from an arbitrary database engine into Lucid ERD. This
+data will be described in the CSV format, with comma separators, but it can also be uploaded with tabs (U+0009) instead
+of commas as a separator.
+
+Each row in the file will specify one column, and each row will be read as follows:
+
+DATABASE-ENGINE,    # Engine being used. You should always use "custom" for unsupported database engines.
+DATABASE-NAME,      # The name of the database where the column resides.
+TABLE-NAME,         # The name of the table where the column resides.
+COLUMN-NAME,        # The name of the column itself
+COLUMN-POSITION,    # The ordinal position of the column. It is 1-indexed.
+DATA-TYPE,          # The data type of the column.
+MAXIMUM-SIZE,       # The maximum length of the data in the column, usually used for character count. Optional.
+CONSTRAINT,         # Should only be "PRIMARY KEY", "FOREIGN KEY", "UNIQUE", or left blank. Case-sensitive. Optional.
+REFERENCED-DB-NAME, # If this column is a foreign key, this will specify the database this key is referencing. Optional.
+REFERENCED-TABLE,   # If this column is a foreign key, this will specify the table this key is referencing. Optional.
+REFERENCED-COL,     # If this column is a foreign key, this will specify the column this key is referencing. Optional.
+
+
+A typical row for this custom import type will look like this:
+
+custom,service_common,features,id,1,int,N,PRIMARY KEY,N,N,N
+
+Which would be interpreted as:
+Inside database "service_common", inside a table "features", there is a column "id", the first column in the table,
+which is of type "int", with unspecified maximum size, which is the primary key of that table, and is not a foreign key.
+
+
+A more complex example could be:
+
+custom,service_common,features,id,1,int,N,PRIMARY KEY,N,N,N
+custom,service_common,features,name,2,varchar,16,UNIQUE,N,N,N
+custom,service_common,features,enabled,3,boolean,N,N,N,N,N
+custom,service_common,feature_history,id,1,int,N,PRIMARY KEY,N,N,N
+custom,service_common,feature_history,feature_id,2,int,N,FOREIGN KEY,service_common,features,id
+custom,service_common,feature_history,last_changed,3,datetime,N,N,N,N,N
+
+
+There's a few quirks that should be specified:
+
+* The importer will succeed if zero, or multiple, primary keys are listed in a single table. However, this will prevent
+  relationship lines from being drawn to that primary key.
+* This document has been using "N" for empty columns. This is not signifying a newline, but rather the literal "" and
+  "N" characters. Empty columns can also be indicated by putting no text at all between separators, we chose to not do
+  that here to make it more readable.
+* Any and all data types are supported, as we don't do anything with that column except use it to label the ERD diagram.
+* The three "REFERENCED-" columns should either all be included, or all be left blank. Including only some will likely
+  result in a foreign key that cannot be used for relationship lines.
+* The importer will not fail if foreign keys reference an unknown column/table/database. However, it will not draw the
+  relationship line in that case.
+* If COLUMN-POSITION is omitted, the order will be determined automatically (usually ordered by the order it appears in
+  CSV). You should not rely on this behavior to be consistent, or to continue to be supported.
